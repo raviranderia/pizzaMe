@@ -17,10 +17,10 @@ import Foundation
 //
 
 protocol YahooServiceProtocol {
-    func getLocalFeed(completion: ([PizzaLocationProtocol]?,ErrorType?) -> (Void)) -> ()
+    func getLocalFeed(completion: @escaping ([PizzaLocationProtocol]?, Error?) -> Void)
 }
 
-enum YahooServiceError : ErrorType {
+enum YahooServiceError : Error {
     case CouldNotConstructValidURL
     case CouldNotParseDataProperly
     case YahooServiceCouldNotBeGenerated
@@ -36,13 +36,13 @@ struct YahooService : YahooServiceProtocol {
         self.networkOperation = networkHelper
     }
         
-    func getLocalFeed(completion: ([PizzaLocationProtocol]?,ErrorType?) -> (Void) ){
+    func getLocalFeed(completion: @escaping ([PizzaLocationProtocol]?, Error?) -> Void) {
      
-            self.networkOperation.downloadJSONFromURL({ (JSONDictionary,error) in
+        self.networkOperation.downloadJSONFromURL(completion: { (JSONDictionary,error) in
                 
                 if JSONDictionary != nil {
                     
-                    self.getPizzaLocationList(JSONDictionary, completion: { (pizzaLocation, error) in
+                    self.getPizzaLocationList(jsonDictionary: JSONDictionary, completion: { (pizzaLocation, error) in
                         
                         if error == nil {
                             completion(pizzaLocation,nil)
@@ -61,7 +61,7 @@ struct YahooService : YahooServiceProtocol {
     }
     
     
-    private func getPizzaLocationList(jsonDictionary : [String : AnyObject]?,completion : ([PizzaLocationProtocol]?,ErrorType?)->()){
+    private func getPizzaLocationList(jsonDictionary : [String : AnyObject]?,completion : ([PizzaLocationProtocol]?,Error?)->()) {
         
         var pizzaLocationList = [PizzaLocationProtocol]()
         

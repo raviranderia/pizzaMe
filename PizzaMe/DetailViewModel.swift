@@ -21,8 +21,8 @@ class DetailViewModel : DetailViewModelProtocol {
     
     func openMapForPlace(lat : String,long:String,venueName : String) {
         
-        let lat1 : NSString = lat
-        let lng1 : NSString = long
+        let lat1 : NSString = lat as NSString
+        let lng1 : NSString = long as NSString
         
         let latitute:CLLocationDegrees =  lat1.doubleValue
         let longitute:CLLocationDegrees =  lng1.doubleValue
@@ -31,24 +31,22 @@ class DetailViewModel : DetailViewModelProtocol {
         let coordinates = CLLocationCoordinate2DMake(latitute, longitute)
         let regionSpan = MKCoordinateRegionMakeWithDistance(coordinates, regionDistance, regionDistance)
         let options = [
-            MKLaunchOptionsMapCenterKey: NSValue(MKCoordinate: regionSpan.center),
-            MKLaunchOptionsMapSpanKey: NSValue(MKCoordinateSpan: regionSpan.span)
+            MKLaunchOptionsMapCenterKey: NSValue(mkCoordinate: regionSpan.center),
+            MKLaunchOptionsMapSpanKey: NSValue(mkCoordinateSpan: regionSpan.span)
         ]
         let placemark = MKPlacemark(coordinate: coordinates, addressDictionary: nil)
         let mapItem = MKMapItem(placemark: placemark)
         mapItem.name = "\(venueName)"
-        mapItem.openInMapsWithLaunchOptions(options)
+        mapItem.openInMaps(launchOptions: options)
         
     }
     
     func parsePhoneNumber(number : String) -> String? {
-        
-        return removeSpecialCharsFromString(number)
+        return removeSpecialCharsFromString(text: number)
     }
     
     private func removeSpecialCharsFromString(text: String) -> String {
-        let okayChars : Set<Character> =
-            Set("1234567890".characters)
-        return String(text.characters.filter {okayChars.contains($0) })
+        let okayChars : Set<Character> = Set("1234567890")
+        return String(text.filter { okayChars.contains($0) })
     }
 }

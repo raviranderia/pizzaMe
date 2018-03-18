@@ -12,7 +12,7 @@ import Foundation
 
 protocol PizzaListViewModelProtocol {
     init(yahoo: YahooServiceProtocol)
-    func retrievePizzaList(completion : ([PizzaLocationProtocol]?,ErrorType?) -> () )
+    func retrievePizzaList(completion : @escaping ([PizzaLocationProtocol]?, Error?) -> Void)
 }
 
 
@@ -27,27 +27,23 @@ class PizzaListViewModel : PizzaListViewModelProtocol {
     required init(yahoo:YahooServiceProtocol) {
         self.yahooService = yahoo
     }
-
     
-    func retrievePizzaList(completion : ([PizzaLocationProtocol]?,ErrorType?) -> () )  {
-               
-                if let yahooService = self.yahooService {
-                yahooService.getLocalFeed({ (pizzaLocationList,error) -> (Void) in
-                    
-                    if let pizzaList = pizzaLocationList {
-                        completion(pizzaList,nil)
-                    }
-                    else{
-                        completion(nil,error)
-                    }
+    
+    func retrievePizzaList(completion : @escaping ([PizzaLocationProtocol]?, Error?) -> Void) {
+        if let yahooService = self.yahooService {
+            yahooService.getLocalFeed { (pizzaLocationList,error) -> (Void) in
                 
-                })
+                if let pizzaList = pizzaLocationList {
+                    completion(pizzaList,nil)
                 }
                 else{
-                    completion(nil,YahooServiceError.YahooServiceCouldNotBeGenerated)
+                    completion(nil,error)
+                }
+                
+            }
         }
-        
+        else{
+            completion(nil,YahooServiceError.YahooServiceCouldNotBeGenerated)
+        }
     }
-           
-    
 }

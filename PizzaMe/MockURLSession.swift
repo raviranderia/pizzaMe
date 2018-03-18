@@ -8,40 +8,41 @@
 
 import Foundation
 
+//
+//typealias DataTaskResult = (NSData?, URLResponse?, NSError?) -> Void
+//
+//extension URLSession: URLSessionProtocol {
+//
+//    func dataTaskWithRequest(url: NSURLRequest, completionHandler: DataTaskResult)
+//        -> URLSessionDataTaskProtocol
+//    {
+//        return (dataTaskWithRequest(url: url, completionHandler: completionHandler)
+//            as! URLSessionDataTask) as URLSessionDataTaskProtocol
+//    }
+//}
+//
+//protocol URLSessionProtocol {
+//
+//    func dataTaskWithRequest(url: NSURLRequest, completionHandler: DataTaskResult)
+//        -> URLSessionDataTaskProtocol
+//}
+//
+//class MockURLSession: URLSessionProtocol {
+//    
+//    var nextDataTask = MockURLSessionDataTask()
+//    var nextData : NSData?
+//    var nextError : NSError?
+//    var nextResponse : URLResponse?
+//    
+//    private (set) var lastURL: NSURLRequest?
+//    
+//    func dataTaskWithRequest(url: NSURLRequest, completionHandler: DataTaskResult)
+//        -> URLSessionDataTaskProtocol
+//    {
+//        lastURL = url
+//        completionHandler(nextData, nextResponse, nextError)
+//        return nextDataTask
+//    }
+//    
+//}
 
-typealias DataTaskResult = (NSData?, NSURLResponse?, NSError?) -> Void
-
-extension NSURLSession: URLSessionProtocol {
-
-    func dataTaskWithRequest(url: NSURLRequest, completionHandler: DataTaskResult)
-        -> URLSessionDataTaskProtocol
-    {
-        return (dataTaskWithRequest(url, completionHandler: completionHandler)
-            as NSURLSessionDataTask) as URLSessionDataTaskProtocol
-    }
-}
-
-protocol URLSessionProtocol {
-
-    func dataTaskWithRequest(url: NSURLRequest, completionHandler: DataTaskResult)
-        -> URLSessionDataTaskProtocol
-}
-
-class MockURLSession: URLSessionProtocol {
-    
-    var nextDataTask = MockURLSessionDataTask()
-    var nextData : NSData?
-    var nextError : NSError?
-    var nextResponse : NSURLResponse?
-    
-    private (set) var lastURL: NSURLRequest?
-    
-    func dataTaskWithRequest(url: NSURLRequest, completionHandler: DataTaskResult)
-        -> URLSessionDataTaskProtocol
-    {
-        lastURL = url
-        completionHandler(nextData, nextResponse, nextError)
-        return nextDataTask
-    }
-    
-}

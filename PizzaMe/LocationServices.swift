@@ -10,71 +10,68 @@ import Foundation
 import CoreLocation
 
 protocol LocationServiceProtocol {
-    func getCurrentLocation(completion : (String?,ErrorType?) -> () )
+    func getCurrentLocation(completion : @escaping (String?, Error?) -> Void)
 }
 
-enum LocationError : ErrorType {
+enum LocationError : Error {
     case NotAuthorized
     case LocationServicesDisabled
     case ProblemFindindZipCode
 }
 
-
-
-class LocationServices : LocationServiceProtocol {
+class LocationServices : NSObject, LocationServiceProtocol, CLLocationManagerDelegate {
     
     private var locationManager = CLLocationManager()
     private var reverseGeoCoder = CLGeocoder()
+    private var requestAuthorizationCompletion: ((String?, Error?) -> Void)?
     
+    static var shared = LocationServices()
+    
+    override init() {
+        super.init()
+        locationManager.delegate = self
+    }
     
     func requestForLocationServices(){
         locationManager.requestWhenInUseAuthorization()
     }
     
-    func getCurrentLocation(completion : (String?,ErrorType?) -> () )  {
-        
+    func getCurrentLocation(completion : @escaping (String?, Error?) -> Void) {
+        requestAuthorizationCompletion = completion
         self.requestForLocationServices()
-        if CLLocationManager.authorizationStatus() == CLAuthorizationStatus.AuthorizedWhenInUse {
-            if let currentLocation = locationManager.location {
-               
-                self.geoCodeLocation(currentLocation, completion: { (zipCode) in
-                    
-                    if zipCode != nil {
-                         completion(zipCode,nil)
-                    }
-                    else{
-                        print("could not geocode")
-                        completion(nil,LocationError.ProblemFindindZipCode)
-                    }
-                })
-                
-            }
-            else{
-                print("authrorized but location services off")
-                completion(nil,LocationError.LocationServicesDisabled)
-            }
-        }
-        else{
-            print("not authorized")
-            completion(nil,LocationError.NotAuthorized)
-        }
     }
     
-    private func geoCodeLocation(currentLocation : CLLocation,completion : (String?) -> ()) {
-        
+    private func geoCodeLocation(currentLocation : CLLocation, completion : @escaping (String?) -> Void) {
         reverseGeoCoder.reverseGeocodeLocation(currentLocation) { (address, error) in
             if error ==  nil {
                 if let zipCode = address?.first?.postalCode {
                     completion(zipCode)
-                }
-                else{
+                } else {
                     completion(nil)
                 }
-            }
-            else{
+            } else {
                 completion(nil)
             }
         }
     }
-
+    
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        if status == .denied {
+            requestAuthorizationCompletion?(nil,LocationError.NotAuthorized)
+        } else if status == .authorizedWhenInUse {
+            if let currentLocation = locationManager.location {
+                self.geoCodeLocation(currentLocation: currentLocation) { (zipCode) in
+                    if zipCode != nil {
+                        self.requestAuthorizationCompletion?(zipCode,nil)
+                    } else {
+                        print("could not geocode")
+                        self.requestAuthorizationCompletion?(nil,LocationError.ProblemFindindZipCode)
+                    }
+                }
+            } else {
+                print("authrorized but location services off")
+                requestAuthorizationCompletion?(nil,LocationError.LocationServicesDisabled)
+            }
+        }
+    }
 }

@@ -9,42 +9,39 @@
 import Foundation
 
 
-enum NetworkOperationError : ErrorType {
+enum NetworkOperationError : Error {
     case ErrorJSON
     case GetRequestNotSuccessful
     case NotValidHTTPResponse
 }
 
 protocol NetworkOperationProtocol {
-     func downloadJSONFromURL(completion : ([String: AnyObject]?,ErrorType?) -> Void) -> ()
+    func downloadJSONFromURL(completion : @escaping ([String: AnyObject]?, Error?) -> Void)
 }
 
 class NetworkOperation : NetworkOperationProtocol {
     
-    private let session: URLSessionProtocol
+    private let session: URLSession
 //    lazy var configuration : NSURLSessionConfiguration = NSURLSessionConfiguration.defaultSessionConfiguration()
 //    lazy var session : NSURLSession = NSURLSession(configuration: self.configuration)
-    let queryURL : NSURL
+    let queryURL : URL
     
-    
-    
-    
-    required init(url : NSURL,session: URLSessionProtocol = NSURLSession.sharedSession()) {
+    required init(url : URL,
+                  session: URLSession = URLSession.shared) {
         self.session = session
         self.queryURL = url
     }
     
-    func downloadJSONFromURL(completion : ([String: AnyObject]?,ErrorType?) -> Void){
-        
-        let request: NSURLRequest = NSURLRequest(URL: queryURL)
-        let dataTask = session.dataTaskWithRequest(request) { (data, response, error) in
-            if let httpResponse = response as? NSHTTPURLResponse {
+    func downloadJSONFromURL(completion : @escaping ([String: AnyObject]?, Error?) -> Void) {
+        let request: URLRequest = URLRequest(url: queryURL as URL)
+        let dataTask = session.dataTask(with: request as URLRequest) { (data, response, error) in
+            if let httpResponse = response as? HTTPURLResponse {
                 
                 switch(httpResponse.statusCode) {
                 case 200:
                     
                     do {
-                        let jsonDictionary = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments)
+                        let jsonDictionary = try JSONSerialization.jsonObject(with: data! as Data, options: .allowFragments)
                         completion(jsonDictionary as? [String : AnyObject],nil)
                     }catch {
                         print("error")

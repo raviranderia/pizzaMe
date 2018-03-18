@@ -14,11 +14,11 @@ class ServiceFactory {
     
     //generate URL for yahooAPI
     
-    private func generateURL(zip : String,completion : (NSURL?,ErrorType?) -> ()) {
+    private func generateURL(zip : String,completion : (URL?, Error?) -> Void) {
         
         let urlString = AppConfig().startURL + zip + AppConfig().endURL
-        if let returnString = NSURL(string: urlString){
-            completion(returnString,nil)
+        if let returnString = URL(string: urlString){
+            completion(returnString, nil)
         }
         else{
             completion(nil,YahooServiceError.CouldNotConstructValidURL)
@@ -26,63 +26,53 @@ class ServiceFactory {
     }
     
     //getLocationFromLocationServices
-    private func getZip(completion : (String?,ErrorType?)-> ()){
-        
-        self.locationService.getCurrentLocation({ (zip, error) in
+    private func getZip(completion : @escaping (String?, Error?) -> Void) {
+        self.locationService.getCurrentLocation { (zip, error) in
             if zip != nil {
                 completion(zip,nil)
-            }
-            else{
+            } else {
                 completion(nil,error)
             }
-        })
+        }
     }
     
-    
-    
-    
-
-    
-    func pizzaListViewModel(completion : (PizzaListViewModel?,ErrorType?)->())  {
+    func pizzaListViewModel(completion : @escaping (PizzaListViewModel?, Error?) -> Void) {
         
         self.yahooService { (yahoo, yahooError) in
             
             if let yahoo = yahoo {
                 completion(PizzaListViewModel(yahoo: yahoo),nil)
-            }
-            else{
+            } else {
                 completion(nil,yahooError)
             }
-            
         }
     }
     
     var locationService: LocationServices {
-        return LocationServices()
+        return LocationServices.shared
     }
     
-    func networkOperation(url : NSURL,completion : (NetworkOperation?,ErrorType?)->()) {
-        completion(NetworkOperation(url: url),nil)
+    func networkOperation(url : URL,completion : (NetworkOperation?, Error?) -> Void) {
+        completion(NetworkOperation(url: url), nil)
     }
     
     var detailViewModel : DetailViewModelProtocol {
         return DetailViewModel()
     }
     
-    
-    func yahooService(completion : (YahooService?,ErrorType?) -> ()) {
+    func yahooService(completion: @escaping (YahooService?, Error?) -> Void) {
         self.getZip { (zipCode, error) in
             if let zipCode = zipCode {
-                self.generateURL(zipCode, completion: { (url, urlError) in
+                self.generateURL(zip: zipCode, completion: { (url, urlError) in
                     if let url = url {
-                       self.networkOperation(url, completion: { (networkHelper, networkError) in
-                        if let networkHelper = networkHelper {
-                            completion(YahooService(networkHelper: networkHelper),nil)
-                        }
-                        else{
-                            completion(nil,networkError)
-                        }
-                       })
+                        self.networkOperation(url: url, completion: { (networkHelper, networkError) in
+                            if let networkHelper = networkHelper {
+                                completion(YahooService(networkHelper: networkHelper),nil)
+                            }
+                            else{
+                                completion(nil,networkError)
+                            }
+                        })
                     }
                     else{
                         completion(nil,urlError)
